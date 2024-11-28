@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import F5TTS
 
 struct ContentView: View {
     var body: some View {
