@@ -21,10 +21,7 @@ struct ContentView: View {
   
   /// A flag indicating whether speech generation is in progress.
   @State private var isGenerating = false
-  
-  /// The progress of speech generation (0-100).
-  @State private var progress = 0.0
-  
+
   /// Any error message that occurred during the process.
   @State private var errorMessage: String?
   
@@ -66,8 +63,9 @@ struct ContentView: View {
   
   /// The progress view shown during speech generation.
   private var progressView: some View {
-    ProgressView(value: progress) {
-      Text("Generating speech... \(Int(progress * 100))%")
+    HStack {
+      Text("Generating speech...")
+      ProgressView()
     }
     .padding()
   }
@@ -137,21 +135,13 @@ struct ContentView: View {
     }
     
     logger.info("Starting speech generation process")
-    await MainActor.run {
       isGenerating = true
-      progress = 0.0
       errorMessage = nil
-    }
     
     do {
       let startTime = CFAbsoluteTimeGetCurrent()
-      let audio = try await viewModel.generateSpeech(text: text) { newProgress in
-        Task { @MainActor in
-          progress = newProgress * 100
-          logger.debug("Generation progress: \(Int(newProgress * 100))%")
-        }
-      }
-      
+      let audio = try await viewModel.generateSpeech(text: text)
+
       let documentsDirectory = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)[0]
       let outputURL = documentsDirectory.appendingPathComponent("output.wav")
       try viewModel.saveAudio(audio: audio, to: outputURL)
@@ -168,9 +158,7 @@ struct ContentView: View {
       }
     }
     
-    await MainActor.run {
       isGenerating = false
-    }
   }
 }
 

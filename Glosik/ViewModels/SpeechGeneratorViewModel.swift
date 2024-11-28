@@ -60,7 +60,7 @@ final class SpeechGeneratorViewModel: ObservableObject {
   ///   - progressHandler: A closure that receives progress updates during generation.
   /// - Returns: An MLXArray containing the generated audio data.
   /// - Throws: An error if speech generation fails.
-  func generateSpeech(text: String, progressHandler: @escaping (Double) -> Void) async throws -> MLXArray {
+  func generateSpeech(text: String) async throws -> MLXArray {
     logger.info("Starting speech generation for text: \(text.prefix(50))...")
     guard let f5tts else {
       logger.error("F5TTS not initialized before generation attempt")
@@ -72,7 +72,10 @@ final class SpeechGeneratorViewModel: ObservableObject {
     }
 
     let startTime = CFAbsoluteTimeGetCurrent()
-    let result = try await f5tts.generate(text: text, progressHandler: progressHandler)
+    let result = try await f5tts.generate(text: text) { progress in
+      self.logger.debug("Generation progress: \(progress * 100)%")
+    }
+    
     let duration = CFAbsoluteTimeGetCurrent() - startTime
 
     logger.info("Speech generation completed in \(String(format: "%.2f", duration))s")
