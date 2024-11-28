@@ -10,9 +10,15 @@ import F5TTS
 import MLX
 import Vocos
 import AVFoundation
+import os
 
-@Observable
-class SpeechGenerator {
+// Add logger instance at the top level
+private let logger = Logger(
+  subsystem: Bundle.main.bundleIdentifier ?? "com.glosik",
+  category: "SpeechGeneration"
+)
+
+class SpeechGenerator: ObservableObject {
   private var f5tts: F5TTS?
   private var player: AVPlayer?
   var isInitialized = false
@@ -20,27 +26,44 @@ class SpeechGenerator {
   var isPlaying = false
   
   func initialize() async {
+    logger.info("Initializing F5TTS model...")
     do {
+      let startTime = CFAbsoluteTimeGetCurrent()
       f5tts = try await F5TTS.fromPretrained(repoId: "lucasnewman/f5-tts-mlx")
+      let duration = CFAbsoluteTimeGetCurrent() - startTime
+      logger.info("F5TTS model initialized successfully in \(String(format: "%.2f", duration))s")
       isInitialized = true
     } catch {
+      logger.error("Failed to initialize F5TTS: \(error.localizedDescription)")
       errorMessage = error.localizedDescription
     }
   }
   
   func generateSpeech(text: String, progressHandler: @escaping (Double) -> Void) async throws -> MLXArray {
+    logger.info("Starting speech generation for text: \(text.prefix(50))...")
     guard let f5tts else {
+      logger.error("F5TTS not initialized before generation attempt")
       throw NSError(domain: "SpeechGenerator", code: -1, userInfo: [NSLocalizedDescriptionKey: "F5TTS not initialized"])
     }
-    return try await f5tts.generate(text: text, progressHandler: progressHandler)
+    
+    let startTime = CFAbsoluteTimeGetCurrent()
+    let result = try await f5tts.generate(text: text, progressHandler: progressHandler)
+    let duration = CFAbsoluteTimeGetCurrent() - startTime
+    
+    logger.info("Speech generation completed in \(String(format: "%.2f", duration))s")
+    return result
   }
   
   func saveAudio(audio: MLXArray, to outputURL: URL) throws {
+    logger.info("Saving audio to \(outputURL.path)")
+    let startTime = CFAbsoluteTimeGetCurrent()
     try AudioUtilities.saveAudioFile(url: outputURL, samples: audio)
-    print("Saved audio to: \(outputURL.path)")
+    let duration = CFAbsoluteTimeGetCurrent() - startTime
+    logger.info("Audio saved successfully in \(String(format: "%.2f", duration))s")
   }
   
   func playAudio(from url: URL) {
+    logger.info("Starting audio playback from \(url.lastPathComponent)")
     // Stop any existing playback
     player?.pause()
     player = nil
@@ -62,10 +85,12 @@ class SpeechGenerator {
   }
   
   @objc private func playerDidFinishPlaying() {
+    logger.info("Audio playback completed")
     isPlaying = false
   }
   
   func stopPlayback() {
+    logger.info("Stopping audio playback")
     player?.pause()
     player = nil
     isPlaying = false
@@ -153,24 +178,35 @@ struct ContentView: View {
   }
   
   private func generateSpeech() async {
-    guard speechGenerator.isInitialized else { return }
+    guard speechGenerator.isInitialized else {
+      logger.error("Attempted to generate speech before initialization")
+      return 
+    }
+    
+    logger.info("Starting speech generation process")
     isGenerating = true
     progress = 0.0
     errorMessage = nil
     
     do {
+      let startTime = CFAbsoluteTimeGetCurrent()
       let audio = try await speechGenerator.generateSpeech(text: text) { newProgress in
         progress = newProgress
+        logger.debug("Generation progress: \(Int(newProgress * 100))%")
       }
       
       let documentsDirectory = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)[0]
       let outputURL = documentsDirectory.appendingPathComponent("output.wav")
       try speechGenerator.saveAudio(audio: audio, to: outputURL)
       
+      let duration = CFAbsoluteTimeGetCurrent() - startTime
+      logger.info("Complete speech generation process finished in \(String(format: "%.2f", duration))s")
+      
       // Play the generated audio
       speechGenerator.playAudio(from: outputURL)
       
     } catch {
+      logger.error("Speech generation failed: \(error.localizedDescription)")
       errorMessage = "Failed to generate speech: \(error.localizedDescription)"
     }
     
