@@ -4,7 +4,7 @@ Głosik (pronounced "gwoh-seek") is an example app to showcase the F5-TTS text-t
 
 Here is the original repository of the implementation: https://github.com/lucasnewman/f5-tts-mlx
 
-[Watch the demo here](https://github.com/rudrankriyam/Glosik/blob/main/F5TTS_demo.mp4)
+https://github.com/user-attachments/assets/ccebcee9-13e8-400b-a189-6df926c6223c
 
 Watch the demo above to see Głosik in action!
 
