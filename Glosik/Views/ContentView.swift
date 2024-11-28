@@ -128,35 +128,16 @@ struct ContentView: View {
 
   /// Generates speech from the current text input.
   private func generateSpeech() async {
-    guard viewModel.isInitialized else {
-      logger.error("Attempted to generate speech before initialization")
-      return
-    }
-
-    logger.info("Starting speech generation process")
     isGenerating = true
     errorMessage = nil
-
+    
     do {
-      let startTime = CFAbsoluteTimeGetCurrent()
-      let audio = try await viewModel.generateSpeech(text: text)
-
-      let documentsDirectory = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)[0]
-      let outputURL = documentsDirectory.appendingPathComponent("output.wav")
-      try viewModel.saveAudio(audio: audio, to: outputURL)
-
-      let duration = CFAbsoluteTimeGetCurrent() - startTime
-      logger.info("Complete speech generation process finished in \(String(format: "%.2f", duration))s")
-
-      viewModel.playAudio(from: outputURL)
-
+      try await viewModel.generateSpeech(text: text)
     } catch {
       logger.error("Speech generation failed: \(error.localizedDescription)")
-      await MainActor.run {
-        errorMessage = "Failed to generate speech: \(error.localizedDescription)"
-      }
+      errorMessage = "Failed to generate speech: \(error.localizedDescription)"
     }
-
+    
     isGenerating = false
   }
 }

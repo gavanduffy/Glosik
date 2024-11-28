@@ -54,13 +54,11 @@ final class SpeechGeneratorViewModel: ObservableObject {
     }
   }
 
-  /// Generates speech from the provided text.
-  /// - Parameters:
-  ///   - text: The text to convert to speech.
-  ///   - progressHandler: A closure that receives progress updates during generation.
+  /// Generates raw speech audio data from the provided text.
+  /// - Parameter text: The text to convert to speech.
   /// - Returns: An MLXArray containing the generated audio data.
   /// - Throws: An error if speech generation fails.
-  func generateSpeech(text: String) async throws -> MLXArray {
+  func generateSpeechAudio(text: String) async throws -> MLXArray {
     logger.info("Starting speech generation for text: \(text.prefix(50))...")
     guard let f5tts else {
       logger.error("F5TTS not initialized before generation attempt")
@@ -77,7 +75,6 @@ final class SpeechGeneratorViewModel: ObservableObject {
     }
     
     let duration = CFAbsoluteTimeGetCurrent() - startTime
-
     logger.info("Speech generation completed in \(String(format: "%.2f", duration))s")
     return result
   }
@@ -133,5 +130,33 @@ final class SpeechGeneratorViewModel: ObservableObject {
   @objc private func playerDidFinishPlaying() {
     logger.info("Audio playback completed")
     isPlaying = false
+  }
+
+  /// Generates speech from the provided text and saves it to a file.
+  /// - Parameter text: The text to convert to speech.
+  /// - Throws: An error if speech generation or saving fails.
+  func generateSpeech(text: String) async throws {
+    logger.info("Starting speech generation process")
+    
+    guard isInitialized else {
+      logger.error("Attempted to generate speech before initialization")
+      throw NSError(
+        domain: "SpeechGenerator",
+        code: -1,
+        userInfo: [NSLocalizedDescriptionKey: "Speech generator not initialized"]
+      )
+    }
+    
+    let startTime = CFAbsoluteTimeGetCurrent()
+    let audio = try await generateSpeechAudio(text: text)
+    
+    let documentsDirectory = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)[0]
+    let outputURL = documentsDirectory.appendingPathComponent("output.wav")
+    try saveAudio(audio: audio, to: outputURL)
+    
+    let duration = CFAbsoluteTimeGetCurrent() - startTime
+    logger.info("Complete speech generation process finished in \(String(format: "%.2f", duration))s")
+    
+    playAudio(from: outputURL)
   }
 }
