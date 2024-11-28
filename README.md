@@ -26,6 +26,22 @@ Watch the demo above to see Głosik in action!
 2. Click "Generate Speech" to create the audio
 3. Use the playback controls to listen to the generated speech
 
+## TO DO
+
+### Add option to reference own audio sample
+
+If you want to use your own reference audio sample, make sure it's a mono, 24kHz wav file of around 5-10 seconds:
+
+```swift
+let generatedAudio = try await f5tts.generate(
+  text: "The quick brown fox jumped over the lazy dog.",
+  referenceAudioURL: ...,
+  referenceAudioText: "This is the caption for the reference audio."
+)
+```
+
+This is NOT implemented yet.
+
 # License
 
 This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for details.
