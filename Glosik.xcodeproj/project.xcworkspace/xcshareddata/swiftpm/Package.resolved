@@ -6,8 +6,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/lucasnewman/f5-tts-swift.git",
       "state" : {
-        "revision" : "3f7614c80b67ac9ed41f862399b5a6e9ad72d92c",
-        "version" : "0.0.3"
+        "branch" : "main",
+        "revision" : "3f7614c80b67ac9ed41f862399b5a6e9ad72d92c"
       }
     },
     {
