@@ -9,11 +9,15 @@ import SwiftUI
 import F5TTS
 import MLX
 import Vocos
+import AVFoundation
 
-final class SpeechGenerator: ObservableObject {
+@Observable
+class SpeechGenerator {
   private var f5tts: F5TTS?
+  private var player: AVPlayer?
   var isInitialized = false
   var errorMessage: String?
+  var isPlaying = false
   
   func initialize() async {
     do {
@@ -34,6 +38,37 @@ final class SpeechGenerator: ObservableObject {
   func saveAudio(audio: MLXArray, to outputURL: URL) throws {
     try AudioUtilities.saveAudioFile(url: outputURL, samples: audio)
     print("Saved audio to: \(outputURL.path)")
+  }
+  
+  func playAudio(from url: URL) {
+    // Stop any existing playback
+    player?.pause()
+    player = nil
+    
+    // Create new player with the audio file
+    let playerItem = AVPlayerItem(url: url)
+    player = AVPlayer(playerItem: playerItem)
+    
+    // Add observer for playback completion
+    NotificationCenter.default.addObserver(
+      self,
+      selector: #selector(playerDidFinishPlaying),
+      name: .AVPlayerItemDidPlayToEndTime,
+      object: playerItem
+    )
+    
+    isPlaying = true
+    player?.play()
+  }
+  
+  @objc private func playerDidFinishPlaying() {
+    isPlaying = false
+  }
+  
+  func stopPlayback() {
+    player?.pause()
+    player = nil
+    isPlaying = false
   }
 }
 
@@ -86,6 +121,29 @@ struct ContentView: View {
             .foregroundColor(.red)
             .padding()
         }
+        
+        if !isGenerating {
+          Button(action: {
+            if speechGenerator.isPlaying {
+              speechGenerator.stopPlayback()
+            } else {
+              let documentsDirectory = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)[0]
+              let outputURL = documentsDirectory.appendingPathComponent("output.wav")
+              speechGenerator.playAudio(from: outputURL)
+            }
+          }) {
+            HStack {
+              Image(systemName: speechGenerator.isPlaying ? "stop.fill" : "play.fill")
+              Text(speechGenerator.isPlaying ? "Stop" : "Play")
+            }
+            .frame(maxWidth: .infinity)
+            .padding()
+            .background(Color.green)
+            .foregroundColor(.white)
+            .cornerRadius(10)
+          }
+          .padding()
+        }
       }
       .navigationTitle("Glosik")
       .task {
@@ -108,6 +166,9 @@ struct ContentView: View {
       let documentsDirectory = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)[0]
       let outputURL = documentsDirectory.appendingPathComponent("output.wav")
       try speechGenerator.saveAudio(audio: audio, to: outputURL)
+      
+      // Play the generated audio
+      speechGenerator.playAudio(from: outputURL)
       
     } catch {
       errorMessage = "Failed to generate speech: \(error.localizedDescription)"
