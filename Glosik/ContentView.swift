@@ -122,25 +122,23 @@ struct ContentView: View {
           }
           .padding()
         }
-        
+
+        HStack {
         Button(action: {
           Task {
             await generateSpeech()
           }
         }) {
-          HStack {
-            Image(systemName: "waveform")
+          Label {
             Text("Generate Speech")
+          } icon: {
+            Image(systemName: "waveform")
           }
-          .frame(maxWidth: .infinity)
-          .padding()
-          .background(Color.blue)
-          .foregroundColor(.white)
-          .cornerRadius(10)
         }
+        .buttonStyle(.borderedProminent)
+        .tint(.teal)
         .disabled(isGenerating || text.isEmpty)
-        .padding()
-        
+
         if let errorMessage {
           Text(errorMessage)
             .foregroundColor(.red)
@@ -148,26 +146,25 @@ struct ContentView: View {
         }
         
         if !isGenerating {
-          Button(action: {
-            if speechGenerator.isPlaying {
-              speechGenerator.stopPlayback()
-            } else {
-              let documentsDirectory = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)[0]
-              let outputURL = documentsDirectory.appendingPathComponent("output.wav")
-              speechGenerator.playAudio(from: outputURL)
+            Button(action: {
+              if speechGenerator.isPlaying {
+                speechGenerator.stopPlayback()
+              } else {
+                let documentsDirectory = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)[0]
+                let outputURL = documentsDirectory.appendingPathComponent("output.wav")
+                speechGenerator.playAudio(from: outputURL)
+              }
+            }) {
+              Label {
+                Text(speechGenerator.isPlaying ? "Stop Playback" : "Play Generated Audio")
+              } icon: {
+                Image(systemName: speechGenerator.isPlaying ? "stop.fill" : "play.fill")
+              }
             }
-          }) {
-            HStack {
-              Image(systemName: speechGenerator.isPlaying ? "stop.fill" : "play.fill")
-              Text(speechGenerator.isPlaying ? "Stop" : "Play")
-            }
-            .frame(maxWidth: .infinity)
+            .buttonStyle(.borderedProminent)
+            .tint(.indigo)
             .padding()
-            .background(Color.green)
-            .foregroundColor(.white)
-            .cornerRadius(10)
           }
-          .padding()
         }
       }
       .navigationTitle("Glosik")
@@ -184,15 +181,19 @@ struct ContentView: View {
     }
     
     logger.info("Starting speech generation process")
-    isGenerating = true
-    progress = 0.0
-    errorMessage = nil
+    await MainActor.run {
+      isGenerating = true
+      progress = 0.0
+      errorMessage = nil
+    }
     
     do {
       let startTime = CFAbsoluteTimeGetCurrent()
       let audio = try await speechGenerator.generateSpeech(text: text) { newProgress in
-        progress = newProgress
-        logger.debug("Generation progress: \(Int(newProgress * 100))%")
+        Task { @MainActor in
+          progress = newProgress * 100
+          logger.debug("Generation progress: \(Int(newProgress * 100))%")
+        }
       }
       
       let documentsDirectory = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)[0]
@@ -207,10 +208,14 @@ struct ContentView: View {
       
     } catch {
       logger.error("Speech generation failed: \(error.localizedDescription)")
-      errorMessage = "Failed to generate speech: \(error.localizedDescription)"
+      await MainActor.run {
+        errorMessage = "Failed to generate speech: \(error.localizedDescription)"
+      }
     }
     
-    isGenerating = false
+    await MainActor.run {
+      isGenerating = false
+    }
   }
 }
 
