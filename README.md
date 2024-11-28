@@ -1,6 +1,6 @@
 # Głosik
 
-Głosik (pronounced "gwoh-seek") is an example app to showcase the F5-TTS text-to-speech system using the MLX framework. The name comes from the Polish word "głos" (voice) with the diminutive suffix "-ik", making it friendly and approachable
+Głosik (pronounced "gwoh-seek") is an example app to showcase the F5-TTS text-to-speech system using the MLX framework. The name comes from the Polish word "głos" (voice) with the diminutive suffix "-ik".
 
 Here is the original repository of the implementation: https://github.com/lucasnewman/f5-tts-mlx
 
