@@ -133,9 +133,11 @@ struct ContentView: View {
     
     do {
       try await viewModel.generateSpeech(text: text)
+    } catch SpeechGeneratorError.notInitialized {
+      errorMessage = "Please wait for initialization to complete"
     } catch {
       logger.error("Speech generation failed: \(error.localizedDescription)")
-      errorMessage = "Failed to generate speech: \(error.localizedDescription)"
+      errorMessage = error.localizedDescription
     }
     
     isGenerating = false

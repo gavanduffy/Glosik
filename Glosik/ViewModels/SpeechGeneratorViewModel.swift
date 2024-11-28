@@ -16,6 +16,24 @@ import AVFoundation
 import os
 import Vocos
 
+/// Errors that can occur during speech generation operations.
+enum SpeechGeneratorError: LocalizedError {
+  case notInitialized
+  case generationFailed(String)
+  case audioSaveFailed(String)
+  
+  var errorDescription: String? {
+    switch self {
+    case .notInitialized:
+      return "Speech generator is not initialized"
+    case .generationFailed(let message):
+      return "Failed to generate speech: \(message)"
+    case .audioSaveFailed(let message):
+      return "Failed to save audio: \(message)"
+    }
+  }
+}
+
 @MainActor
 final class SpeechGeneratorViewModel: ObservableObject {
   /// The F5TTS model instance used for speech generation.
@@ -62,11 +80,7 @@ final class SpeechGeneratorViewModel: ObservableObject {
     logger.info("Starting speech generation for text: \(text.prefix(50))...")
     guard let f5tts else {
       logger.error("F5TTS not initialized before generation attempt")
-      throw NSError(
-        domain: "SpeechGenerator",
-        code: -1,
-        userInfo: [NSLocalizedDescriptionKey: "F5TTS not initialized"]
-      )
+      throw SpeechGeneratorError.notInitialized
     }
 
     let startTime = CFAbsoluteTimeGetCurrent()
@@ -140,11 +154,7 @@ final class SpeechGeneratorViewModel: ObservableObject {
     
     guard isInitialized else {
       logger.error("Attempted to generate speech before initialization")
-      throw NSError(
-        domain: "SpeechGenerator",
-        code: -1,
-        userInfo: [NSLocalizedDescriptionKey: "Speech generator not initialized"]
-      )
+      throw SpeechGeneratorError.notInitialized
     }
     
     let startTime = CFAbsoluteTimeGetCurrent()
