@@ -9,9 +9,12 @@ import SwiftUI
 
 @main
 struct GlosikApp: App {
-    var body: some Scene {
-        WindowGroup {
-            ContentView()
-        }
+  @State private var deviceStat = DeviceStat()
+
+  var body: some Scene {
+    WindowGroup {
+      ContentView()
+        .environment(deviceStat)
     }
+  }
 }

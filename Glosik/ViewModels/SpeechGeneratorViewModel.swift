@@ -89,23 +89,24 @@ final class SpeechGeneratorViewModel: ObservableObject {
     generationProgress = 0
 
     logger.info("Starting speech generation for text: \(text.prefix(50))...")
-    guard let f5tts else {
-      logger.error("F5TTS not initialized before generation attempt")
-      throw SpeechGeneratorError.notInitialized
+
+    if f5tts == nil {
+      await initialize()
     }
 
     let startTime = CFAbsoluteTimeGetCurrent()
-    let result = try await f5tts.generate(text: text) { progress in
-      // Dispatch progress updates to main thread
+    let result = try await f5tts?.generate(text: text) { progress in
       Task { @MainActor in
         self.generationProgress = progress
         self.logger.debug("Generation progress: \(progress * 100)%")
       }
     }
 
+    resetF5TTS()
+
     let duration = CFAbsoluteTimeGetCurrent() - startTime
     logger.info("Speech generation completed in \(String(format: "%.2f", duration))s")
-    return result
+    return result ?? []
   }
 
   /// Saves the generated audio to a file.
@@ -193,5 +194,13 @@ final class SpeechGeneratorViewModel: ObservableObject {
       "Complete speech generation process finished in \(String(format: "%.2f", duration))s")
 
     playAudio(from: outputURL)
+  }
+
+  /// Resets the F5TTS instance and related state.
+  /// This method clears the current F5TTS instance and sets initialization status to false.
+  /// Call this when you need to reinitialize the model with fresh state.
+  func resetF5TTS() {
+    logger.info("Resetting F5TTS instance")
+    f5tts = nil
   }
 }

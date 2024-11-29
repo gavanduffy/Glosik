@@ -5,16 +5,16 @@
 //  Created by Rudrank Riyam on 11/29/24.
 //
 
-/// The main content view of the Glosik app.
-///
-/// This view provides the user interface for text-to-speech generation,
-/// including text input, generation controls, and playback functionality.
+import MLX
 import SwiftUI
 import os
 
 struct ContentView: View {
   /// The view model that manages speech generation.
   @StateObject private var viewModel = SpeechGeneratorViewModel()
+
+  /// Environment object to monitor device stats
+  @Environment(DeviceStat.self) private var deviceStat
 
   /// The text to be converted to speech.
   @State private var text = "Hello! This is a test of the F5 text to speech system."
@@ -34,6 +34,7 @@ struct ContentView: View {
   var body: some View {
     NavigationStack {
       VStack(spacing: 24) {
+        deviceStatsSection
         timingInfoSection
         textInputSection
 
@@ -49,6 +50,26 @@ struct ContentView: View {
         await viewModel.initialize()
       }
     }
+  }
+
+  private var deviceStatsSection: some View {
+    HStack {
+      Label(
+        "Memory: \(deviceStat.gpuUsage.activeMemory.formatted(.byteCount(style: .memory)))",
+        systemImage: "memorychip"
+      )
+      .font(.caption)
+      .foregroundStyle(.secondary)
+      .help(
+        """
+        Active Memory: \(deviceStat.gpuUsage.activeMemory.formatted(.byteCount(style: .memory)))/\(GPU.memoryLimit.formatted(.byteCount(style: .memory)))
+        Cache Memory: \(deviceStat.gpuUsage.cacheMemory.formatted(.byteCount(style: .memory)))/\(GPU.cacheLimit.formatted(.byteCount(style: .memory)))
+        Peak Memory: \(deviceStat.gpuUsage.peakMemory.formatted(.byteCount(style: .memory)))
+        """
+      )
+    }
+    .frame(maxWidth: .infinity, alignment: .trailing)
+    .padding(.horizontal)
   }
 
   private var timingInfoSection: some View {
@@ -92,12 +113,7 @@ struct ContentView: View {
         .progressViewStyle(.linear)
         .padding()
       }
-
-      Text("Generating speech...")
-        .font(.subheadline)
-        .foregroundStyle(.secondary)
     }
-    .padding(.vertical)
   }
 
   private var controlSection: some View {
