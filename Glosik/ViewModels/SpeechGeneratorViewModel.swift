@@ -60,6 +60,12 @@ final class SpeechGeneratorViewModel: ObservableObject {
   /// The current progress of speech generation, from 0 to 1
   @Published private(set) var generationProgress: Double = 0
 
+  /// Time taken for speech generation in seconds
+  @Published private(set) var generationTime: Double?
+
+  /// Time taken for audio saving in seconds
+  @Published private(set) var saveTime: Double?
+
   /// Initializes the F5TTS model.
   func initialize() async {
     logger.info("Initializing F5TTS model...")
@@ -161,6 +167,9 @@ final class SpeechGeneratorViewModel: ObservableObject {
   /// - Parameter text: The text to convert to speech.
   /// - Throws: An error if speech generation or saving fails.
   func generateSpeech(text: String) async throws {
+    generationTime = nil
+    saveTime = nil
+
     logger.info("Starting speech generation process")
 
     guard isInitialized else {
@@ -170,11 +179,14 @@ final class SpeechGeneratorViewModel: ObservableObject {
 
     let startTime = CFAbsoluteTimeGetCurrent()
     let audio = try await generateSpeechAudio(text: text)
+    generationTime = CFAbsoluteTimeGetCurrent() - startTime
 
+    let saveStartTime = CFAbsoluteTimeGetCurrent()
     let documentsDirectory = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)[
       0]
     let outputURL = documentsDirectory.appendingPathComponent("output.wav")
     try saveAudio(audio: audio, to: outputURL)
+    saveTime = CFAbsoluteTimeGetCurrent() - saveStartTime
 
     let duration = CFAbsoluteTimeGetCurrent() - startTime
     logger.info(

@@ -34,6 +34,7 @@ struct ContentView: View {
   var body: some View {
     NavigationStack {
       VStack(spacing: 24) {
+        timingInfoSection
         textInputSection
 
         if isGenerating {
@@ -48,6 +49,24 @@ struct ContentView: View {
         await viewModel.initialize()
       }
     }
+  }
+
+  private var timingInfoSection: some View {
+    HStack {
+      if let generationTime = viewModel.generationTime {
+        Text("Generation: \(String(format: "%.2fs", generationTime))")
+          .font(.caption)
+          .foregroundStyle(.secondary)
+      }
+
+      if let saveTime = viewModel.saveTime {
+        Text("Save: \(String(format: "%.2fs", saveTime))")
+          .font(.caption)
+          .foregroundStyle(.secondary)
+      }
+    }
+    .frame(maxWidth: .infinity, alignment: .trailing)
+    .padding(.horizontal)
   }
 
   private var textInputSection: some View {
