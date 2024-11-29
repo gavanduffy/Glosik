@@ -16,7 +16,7 @@ struct AudioRecorderView: View {
 
   var body: some View {
     NavigationStack {
-      VStack(spacing: 24) {
+      ScrollView {
         recordingSection
         if let url = selectedAudioURL {
           referenceSection(url: url)

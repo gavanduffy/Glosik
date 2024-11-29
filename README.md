@@ -23,24 +23,24 @@ Watch the demo above to see Głosik in action!
 ## Usage
 
 1. Enter the text you want to convert to speech
-2. Click "Generate Speech" to create the audio
-3. Use the playback controls to listen to the generated speech
+2. (Optional) Record or select a reference audio sample:
+   - Go to the "Reference" tab
+   - Record a new audio sample and provide reference text
+   - Save it as a reference sample
+   - Select it from the reference picker in the "Generate" tab
+3. Click "Generate Speech" to create the audio
+4. Use the playback controls to listen to the generated speech
 
-## TO DO
+## Features
 
-### Add option to reference own audio sample
+### Reference Audio Support
 
-If you want to use your own reference audio sample, make sure it's a mono, 24kHz wav file of around 5-10 seconds:
+You can use your own reference audio samples to influence the generated speech. The app supports:
 
-```swift
-let generatedAudio = try await f5tts.generate(
-  text: "The quick brown fox jumped over the lazy dog.",
-  referenceAudioURL: ...,
-  referenceAudioText: "This is the caption for the reference audio."
-)
-```
-
-This is NOT implemented yet.
+- Recording new reference samples with accompanying text
+- Managing saved reference samples
+- Selecting reference samples for speech generation
+- Playing back reference samples
 
 # License
 
