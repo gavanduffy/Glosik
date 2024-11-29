@@ -186,25 +186,3 @@ struct ContentView: View {
     isGenerating = false
   }
 }
-
-extension ButtonStyle where Self == ProminentButtonStyle {
-  static var prominent: ProminentButtonStyle {
-    ProminentButtonStyle()
-  }
-}
-
-struct ProminentButtonStyle: ButtonStyle {
-  func makeBody(configuration: Configuration) -> some View {
-    configuration.label
-      .font(.headline)
-      .frame(maxWidth: .infinity)
-      .padding()
-      .background(configuration.isPressed ? Color.accentColor.opacity(0.8) : Color.accentColor)
-      .foregroundStyle(.white)
-      .clipShape(RoundedRectangle(cornerRadius: 12))
-  }
-}
-
-#Preview {
-  ContentView()
-}

@@ -9,12 +9,23 @@ import SwiftUI
 
 @main
 struct GlosikApp: App {
+  /// The device statistics object
   @State private var deviceStat = DeviceStat()
 
   var body: some Scene {
     WindowGroup {
-      ContentView()
-        .environment(deviceStat)
+      TabView {
+        ContentView()
+          .environment(deviceStat)
+          .tabItem {
+            Label("Generate", systemImage: "waveform.circle.fill")
+          }
+
+        AudioRecorderView()
+          .tabItem {
+            Label("Reference", systemImage: "mic.circle.fill")
+          }
+      }
     }
   }
 }
