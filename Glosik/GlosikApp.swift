@@ -11,17 +11,18 @@ import SwiftUI
 struct GlosikApp: App {
   /// The device statistics object
   @State private var deviceStat = DeviceStat()
-
+  @StateObject private var viewModel = ReferenceAudioViewModel()
+  
   var body: some Scene {
     WindowGroup {
       TabView {
-        ContentView()
+        ContentView(referenceViewModel: viewModel)
           .environment(deviceStat)
           .tabItem {
             Label("Generate", systemImage: "waveform.circle.fill")
           }
-
-        AudioRecorderView()
+        
+        AudioRecorderView(viewModel: viewModel)
           .tabItem {
             Label("Reference", systemImage: "mic.circle.fill")
           }

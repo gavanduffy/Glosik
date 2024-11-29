@@ -66,6 +66,9 @@ final class SpeechGeneratorViewModel: ObservableObject {
   /// Time taken for audio saving in seconds
   @Published private(set) var saveTime: Double?
 
+  /// Currently selected reference sample
+  @Published var selectedReference: ReferenceSample?
+
   /// Initializes the F5TTS model.
   func initialize() async {
     logger.info("Initializing F5TTS model...")
@@ -95,18 +98,36 @@ final class SpeechGeneratorViewModel: ObservableObject {
     }
 
     let startTime = CFAbsoluteTimeGetCurrent()
-    let result = try await f5tts?.generate(text: text) { progress in
-      Task { @MainActor in
-        self.generationProgress = progress
-        self.logger.debug("Generation progress: \(progress * 100)%")
-      }
+    let result: MLXArray
+
+    if let reference = selectedReference {
+      logger.info("Using reference audio: \(reference.audio.lastPathComponent)")
+      result =
+        try await f5tts?.generate(
+          text: text,
+          referenceAudioURL: reference.audio,
+          referenceAudioText: reference.text
+        ) { progress in
+          Task { @MainActor in
+            self.generationProgress = progress
+            self.logger.debug("Generation progress: \(progress * 100)%")
+          }
+        } ?? []
+    } else {
+      result =
+        try await f5tts?.generate(text: text) { progress in
+          Task { @MainActor in
+            self.generationProgress = progress
+            self.logger.debug("Generation progress: \(progress * 100)%")
+          }
+        } ?? []
     }
 
     resetF5TTS()
 
     let duration = CFAbsoluteTimeGetCurrent() - startTime
     logger.info("Speech generation completed in \(String(format: "%.2f", duration))s")
-    return result ?? []
+    return result
   }
 
   /// Saves the generated audio to a file.

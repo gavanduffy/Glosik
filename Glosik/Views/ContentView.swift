@@ -12,6 +12,8 @@ import os
 struct ContentView: View {
   /// The view model that manages speech generation.
   @StateObject private var viewModel = SpeechGeneratorViewModel()
+  @ObservedObject var referenceViewModel: ReferenceAudioViewModel
+  @State private var showReferencePicker = false
 
   /// Environment object to monitor device stats
   @Environment(DeviceStat.self) private var deviceStat
@@ -43,11 +45,13 @@ struct ContentView: View {
         }
 
         controlSection
+        referenceSampleSection
       }
       .padding()
       .navigationTitle("Glosik")
       .task {
         await viewModel.initialize()
+        referenceViewModel.loadReferenceSamples()
       }
     }
   }
@@ -169,6 +173,53 @@ struct ContentView: View {
     .controlSize(.large)
   }
 
+  private var referenceSampleSection: some View {
+    VStack(alignment: .leading, spacing: 8) {
+      Text("Reference Sample")
+        .font(.headline)
+
+      if let reference = referenceViewModel.selectedReference {
+        VStack(alignment: .leading, spacing: 4) {
+          Text(reference.audio.lastPathComponent)
+            .font(.subheadline)
+          Text(reference.text)
+            .font(.caption)
+            .foregroundStyle(.secondary)
+
+          Button("Clear Reference") {
+            referenceViewModel.selectedReference = nil
+            viewModel.selectedReference = nil
+          }
+          .buttonStyle(.borderless)
+          .foregroundStyle(.red)
+        }
+        .padding()
+        .background(Color.secondary.opacity(0.1))
+        .clipShape(RoundedRectangle(cornerRadius: 8))
+      } else {
+        Button("Select Reference Sample") {
+          showReferencePicker = true
+        }
+        .buttonStyle(.bordered)
+      }
+    }
+    .task {
+      referenceViewModel.loadReferenceSamples()
+    }
+    .sheet(isPresented: $showReferencePicker) {
+      ReferencePickerView(
+        viewModel: referenceViewModel,
+        onSelect: { sample in
+          referenceViewModel.selectedReference = sample
+          showReferencePicker = false
+        }
+      )
+    }
+    .onChange(of: referenceViewModel.selectedReference) { newValue in
+      viewModel.selectedReference = newValue
+    }
+  }
+
   /// Generates speech from the current text input.
   private func generateSpeech() async {
     isGenerating = true
@@ -184,5 +235,37 @@ struct ContentView: View {
     }
 
     isGenerating = false
+  }
+}
+
+struct ReferencePickerView: View {
+  @Environment(\.dismiss) var dismiss
+  @ObservedObject var viewModel: ReferenceAudioViewModel
+  let onSelect: (ReferenceSample) -> Void
+
+  var body: some View {
+    NavigationStack {
+      ScrollView {
+        ForEach(viewModel.referenceSamples, id: \.audio) { sample in
+          Button(action: { onSelect(sample) }) {
+            VStack(alignment: .leading, spacing: 4) {
+              Text(sample.audio.lastPathComponent)
+                .font(.subheadline)
+              Text(sample.text)
+                .font(.caption)
+                .foregroundStyle(.secondary)
+            }
+          }
+        }
+      }
+      .navigationTitle("Select Reference")
+      .toolbar {
+        ToolbarItem(placement: .cancellationAction) {
+          Button("Cancel") {
+            dismiss()
+          }
+        }
+      }
+    }
   }
 }

@@ -9,47 +9,32 @@ import SwiftUI
 /// - Save recorded audio as reference samples
 /// - View and manage saved reference samples
 struct AudioRecorderView: View {
-  /// The audio recorder instance
-  @StateObject private var audioRecorder = AudioRecorder()
-
-  /// The currently selected audio file URL
+  @ObservedObject var viewModel: ReferenceAudioViewModel
   @State private var selectedAudioURL: URL?
-
-  /// Text for the reference audio
   @State private var referenceText = ""
-
-  /// Alert message to show
   @State private var alertMessage: String?
-
-  /// List of saved reference samples
-  @State private var referenceSamples: [(audio: URL, text: String)] = []
 
   var body: some View {
     NavigationStack {
       VStack(spacing: 24) {
         recordingSection
-
         if let url = selectedAudioURL {
           referenceSection(url: url)
         }
-
         referenceSamplesSection
-
         Spacer()
       }
       .padding()
       .navigationTitle("Reference Audio")
       .alert("Save Result", isPresented: .constant(alertMessage != nil)) {
-        Button("OK") {
-          alertMessage = nil
-        }
+        Button("OK") { alertMessage = nil }
       } message: {
         if let message = alertMessage {
           Text(message)
         }
       }
       .task {
-        loadReferenceSamples()
+        viewModel.loadReferenceSamples()
       }
     }
   }
@@ -61,16 +46,15 @@ struct AudioRecorderView: View {
 
       HStack(spacing: 16) {
         Button(action: {
-          if audioRecorder.isRecording {
-            audioRecorder.stopRecording()
-            selectedAudioURL = audioRecorder.recordedFileURL
+          if viewModel.isRecording {
+            selectedAudioURL = viewModel.stopRecording()
           } else {
-            audioRecorder.startRecording()
+            viewModel.startRecording()
           }
         }) {
           Label(
-            audioRecorder.isRecording ? "Stop Recording" : "Start Recording",
-            systemImage: audioRecorder.isRecording ? "stop.circle.fill" : "record.circle.fill"
+            viewModel.isRecording ? "Stop Recording" : "Start Recording",
+            systemImage: viewModel.isRecording ? "stop.circle.fill" : "record.circle.fill"
           )
         }
         .buttonStyle(.prominent)
@@ -79,15 +63,15 @@ struct AudioRecorderView: View {
 
         if let url = selectedAudioURL {
           Button(action: {
-            if audioRecorder.isPlaying {
-              audioRecorder.stopPlayback()
+            if viewModel.isPlaying {
+              viewModel.stopPlayback()
             } else {
-              audioRecorder.playRecording(url: url)
+              viewModel.playAudio(url: url)
             }
           }) {
             Label(
-              audioRecorder.isPlaying ? "Stop" : "Play",
-              systemImage: audioRecorder.isPlaying ? "stop.circle.fill" : "play.circle.fill"
+              viewModel.isPlaying ? "Stop" : "Play",
+              systemImage: viewModel.isPlaying ? "stop.circle.fill" : "play.circle.fill"
             )
           }
           .buttonStyle(.prominent)
@@ -109,7 +93,13 @@ struct AudioRecorderView: View {
         .clipShape(RoundedRectangle(cornerRadius: 12))
 
       Button(action: {
-        saveReferenceAudio(url: url)
+        do {
+          try viewModel.saveReferenceAudio(url: url, text: referenceText)
+          alertMessage = "Reference audio and text saved successfully"
+          referenceText = ""
+        } catch {
+          alertMessage = "Failed to save reference: \(error.localizedDescription)"
+        }
       }) {
         Label("Save as Reference", systemImage: "square.and.arrow.down.fill")
       }
@@ -127,77 +117,17 @@ struct AudioRecorderView: View {
 
       ScrollView {
         LazyVStack(spacing: 12) {
-          ForEach(referenceSamples, id: \.audio) { sample in
+          ForEach(viewModel.referenceSamples, id: \.audio) { sample in
             ReferenceSampleRow(
               filename: sample.audio.lastPathComponent,
               text: sample.text,
-              onPlay: { audioRecorder.playRecording(url: sample.audio) }
+              onPlay: { viewModel.playAudio(url: sample.audio) }
             )
           }
         }
       }
       .frame(maxHeight: 200)
     }
-  }
-
-  /// Saves the reference audio and text
-  private func saveReferenceAudio(url: URL) {
-    let documentsPath = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)[0]
-    let referencesPath = documentsPath.appendingPathComponent("References", isDirectory: true)
-
-    do {
-      try FileManager.default.createDirectory(at: referencesPath, withIntermediateDirectories: true)
-
-      let timestamp = ISO8601DateFormatter().string(from: Date())
-      let audioURL = referencesPath.appendingPathComponent("\(timestamp).wav")
-      let textURL = referencesPath.appendingPathComponent("\(timestamp).txt")
-
-      try FileManager.default.copyItem(at: url, to: audioURL)
-      try referenceText.write(to: textURL, atomically: true, encoding: .utf8)
-
-      alertMessage = "Reference audio and text saved successfully"
-      referenceText = ""
-    } catch {
-      alertMessage = "Failed to save reference: \(error.localizedDescription)"
-    }
-  }
-
-  /// Loads all reference samples from the References directory
-  private func loadReferenceSamples() {
-    let documentsPath = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)[0]
-    let referencesPath = documentsPath.appendingPathComponent("References")
-
-    do {
-      let files = try FileManager.default.contentsOfDirectory(
-        at: referencesPath,
-        includingPropertiesForKeys: nil
-      )
-
-      referenceSamples =
-        try files
-        .filter { $0.pathExtension == "wav" }
-        .compactMap { audioURL -> (URL, String)? in
-          let textURL = audioURL.deletingPathExtension().appendingPathExtension("txt")
-          guard let text = try? String(contentsOf: textURL, encoding: .utf8) else { return nil }
-          return (audioURL, text)
-        }
-    } catch {
-      print("Failed to load references: \(error.localizedDescription)")
-    }
-  }
-
-  /// Gets all reference samples
-  /// - Returns: Array of tuples containing audio URLs and their corresponding text
-  func getReferenceSamples() -> [(audio: URL, text: String)] {
-    return referenceSamples
-  }
-
-  /// Gets a specific reference sample by index
-  /// - Parameter index: Index of the desired reference sample
-  /// - Returns: Tuple containing audio URL and text, or nil if index is invalid
-  func getReferenceSample(at index: Int) -> (audio: URL, text: String)? {
-    guard index >= 0 && index < referenceSamples.count else { return nil }
-    return referenceSamples[index]
   }
 }
 
@@ -227,8 +157,4 @@ struct ReferenceSampleRow: View {
     .background(Color.secondary.opacity(0.1))
     .clipShape(RoundedRectangle(cornerRadius: 8))
   }
-}
-
-#Preview {
-  AudioRecorderView()
 }
