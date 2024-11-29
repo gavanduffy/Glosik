@@ -5,23 +5,23 @@
 //  Created by Rudrank Riyam on 11/29/24.
 //
 
+import AVFoundation
+import F5TTS
+import MLX
 /// A view model that manages speech generation and playback functionality.
 ///
 /// This class handles the initialization of the F5TTS model, speech generation,
 /// and audio playback operations.
 import SwiftUI
-import F5TTS
-import MLX
-import AVFoundation
-import os
 import Vocos
+import os
 
 /// Errors that can occur during speech generation operations.
 enum SpeechGeneratorError: LocalizedError {
   case notInitialized
   case generationFailed(String)
   case audioSaveFailed(String)
-  
+
   var errorDescription: String? {
     switch self {
     case .notInitialized:
@@ -57,6 +57,9 @@ final class SpeechGeneratorViewModel: ObservableObject {
     category: "SpeechGeneration"
   )
 
+  /// The current progress of speech generation, from 0 to 1
+  @Published private(set) var generationProgress: Double = 0
+
   /// Initializes the F5TTS model.
   func initialize() async {
     logger.info("Initializing F5TTS model...")
@@ -77,6 +80,8 @@ final class SpeechGeneratorViewModel: ObservableObject {
   /// - Returns: An MLXArray containing the generated audio data.
   /// - Throws: An error if speech generation fails.
   func generateSpeechAudio(text: String) async throws -> MLXArray {
+    generationProgress = 0
+
     logger.info("Starting speech generation for text: \(text.prefix(50))...")
     guard let f5tts else {
       logger.error("F5TTS not initialized before generation attempt")
@@ -85,9 +90,13 @@ final class SpeechGeneratorViewModel: ObservableObject {
 
     let startTime = CFAbsoluteTimeGetCurrent()
     let result = try await f5tts.generate(text: text) { progress in
-      self.logger.debug("Generation progress: \(progress * 100)%")
+      // Dispatch progress updates to main thread
+      Task { @MainActor in
+        self.generationProgress = progress
+        self.logger.debug("Generation progress: \(progress * 100)%")
+      }
     }
-    
+
     let duration = CFAbsoluteTimeGetCurrent() - startTime
     logger.info("Speech generation completed in \(String(format: "%.2f", duration))s")
     return result
@@ -133,9 +142,11 @@ final class SpeechGeneratorViewModel: ObservableObject {
   }
 
   /// Stops the current audio playback.
+  /// This method pauses the audio player, sets the player to nil,
+  /// and updates the playback state to indicate that audio is no longer playing.
   func stopPlayback() {
     logger.info("Stopping audio playback")
-    player?.pause()
+    player?.pause()  // Safely unwrap the optional player
     player = nil
     isPlaying = false
   }
@@ -151,22 +162,24 @@ final class SpeechGeneratorViewModel: ObservableObject {
   /// - Throws: An error if speech generation or saving fails.
   func generateSpeech(text: String) async throws {
     logger.info("Starting speech generation process")
-    
+
     guard isInitialized else {
       logger.error("Attempted to generate speech before initialization")
       throw SpeechGeneratorError.notInitialized
     }
-    
+
     let startTime = CFAbsoluteTimeGetCurrent()
     let audio = try await generateSpeechAudio(text: text)
-    
-    let documentsDirectory = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)[0]
+
+    let documentsDirectory = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)[
+      0]
     let outputURL = documentsDirectory.appendingPathComponent("output.wav")
     try saveAudio(audio: audio, to: outputURL)
-    
+
     let duration = CFAbsoluteTimeGetCurrent() - startTime
-    logger.info("Complete speech generation process finished in \(String(format: "%.2f", duration))s")
-    
+    logger.info(
+      "Complete speech generation process finished in \(String(format: "%.2f", duration))s")
+
     playAudio(from: outputURL)
   }
 }

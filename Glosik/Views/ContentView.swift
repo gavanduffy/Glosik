@@ -64,8 +64,15 @@ struct ContentView: View {
 
   private var progressSection: some View {
     VStack {
-      ProgressView()
-        .controlSize(.large)
+      if viewModel.generationProgress > 0 {
+        ProgressView(
+          "Generating Speech... \(Int(viewModel.generationProgress * 100))%",
+          value: viewModel.generationProgress,
+          total: 1.0
+        )
+        .progressViewStyle(.linear)
+        .padding()
+      }
 
       Text("Generating speech...")
         .font(.subheadline)
@@ -111,7 +118,8 @@ struct ContentView: View {
       if viewModel.isPlaying {
         viewModel.stopPlayback()
       } else {
-        let documentsDirectory = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)[0]
+        let documentsDirectory = FileManager.default.urls(
+          for: .documentDirectory, in: .userDomainMask)[0]
         let outputURL = documentsDirectory.appendingPathComponent("output.wav")
         viewModel.playAudio(from: outputURL)
       }
@@ -130,7 +138,7 @@ struct ContentView: View {
   private func generateSpeech() async {
     isGenerating = true
     errorMessage = nil
-    
+
     do {
       try await viewModel.generateSpeech(text: text)
     } catch SpeechGeneratorError.notInitialized {
@@ -139,7 +147,7 @@ struct ContentView: View {
       logger.error("Speech generation failed: \(error.localizedDescription)")
       errorMessage = error.localizedDescription
     }
-    
+
     isGenerating = false
   }
 }
