@@ -1,8 +1,8 @@
 # Głosik
 
-Głosik (pronounced "gwoh-seek") is an example app to showcase the F5-TTS text-to-speech system using the MLX framework. The name comes from the Polish word "głos" (voice) with the diminutive suffix "-ik".
+Głosik (pronounced "gwoh-seek") is an example app to showcase the F5-TTS text-to-speech system using the MLX Swift. The name comes from the Polish word "głos" (voice) with the diminutive suffix "-ik".
 
-Here is the original repository of the implementation: https://github.com/lucasnewman/f5-tts-mlx
+Here is the original repository of the implementation: [https://github.com/lucasnewman/f5-tts-swift](https://github.com/lucasnewman/f5-tts-swift)
 
 https://github.com/user-attachments/assets/ccebcee9-13e8-400b-a189-6df926c6223c
 
@@ -12,7 +12,7 @@ Watch the demo above to see Głosik in action!
 
 - macOS 14.0 or later
 - Xcode 15.0 or later
-- Swift 5.9 or later
+- Swift 6.0 or later
 
 ## Installation
 
