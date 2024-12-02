@@ -37,23 +37,23 @@ struct ContentView: View {
   var body: some View {
     NavigationStack {
       VStack(spacing: 24) {
-          HStack {
-            Label(
-              "Memory: \(deviceStat.gpuUsage.activeMemory.formatted(.byteCount(style: .memory)))",
-              systemImage: "memorychip"
-            )
-            .font(.caption)
-            .foregroundStyle(.secondary)
-            .help(
-              """
-              Active Memory: \(deviceStat.gpuUsage.activeMemory.formatted(.byteCount(style: .memory)))/\(GPU.memoryLimit.formatted(.byteCount(style: .memory)))
-              Cache Memory: \(deviceStat.gpuUsage.cacheMemory.formatted(.byteCount(style: .memory)))/\(GPU.cacheLimit.formatted(.byteCount(style: .memory)))
-              Peak Memory: \(deviceStat.gpuUsage.peakMemory.formatted(.byteCount(style: .memory)))
-              """
-            )
-          }
-          .frame(maxWidth: .infinity, alignment: .trailing)
-          .padding(.horizontal)
+        HStack {
+          Label(
+            "Memory: \(deviceStat.gpuUsage.activeMemory.formatted(.byteCount(style: .memory)))",
+            systemImage: "memorychip"
+          )
+          .font(.caption)
+          .foregroundStyle(.secondary)
+          .help(
+            """
+            Active Memory: \(deviceStat.gpuUsage.activeMemory.formatted(.byteCount(style: .memory)))/\(GPU.memoryLimit.formatted(.byteCount(style: .memory)))
+            Cache Memory: \(deviceStat.gpuUsage.cacheMemory.formatted(.byteCount(style: .memory)))/\(GPU.cacheLimit.formatted(.byteCount(style: .memory)))
+            Peak Memory: \(deviceStat.gpuUsage.peakMemory.formatted(.byteCount(style: .memory)))
+            """
+          )
+        }
+        .frame(maxWidth: .infinity, alignment: .trailing)
+        .padding(.horizontal)
 
         TimingInfoView(
           generationTime: viewModel.generationTime,
@@ -139,7 +139,7 @@ struct ContentView: View {
         }
       )
     }
-    .onChange(of: referenceViewModel.selectedReference) { newValue in
+    .onChange(of: referenceViewModel.selectedReference) { oldValue, newValue in
       viewModel.selectedReference = newValue
     }
   }

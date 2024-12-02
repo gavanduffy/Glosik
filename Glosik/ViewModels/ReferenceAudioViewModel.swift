@@ -34,7 +34,7 @@ final class ReferenceAudioViewModel: ObservableObject {
       )
       
       referenceSamples =
-      try files
+      files
         .filter { $0.pathExtension == "wav" }
         .compactMap { audioURL -> ReferenceSample? in
           let textURL = audioURL.deletingPathExtension().appendingPathExtension("txt")

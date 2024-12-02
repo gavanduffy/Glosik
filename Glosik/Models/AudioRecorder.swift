@@ -117,19 +117,23 @@ final class AudioRecorder: NSObject, ObservableObject {
 }
 
 extension AudioRecorder: AVAudioRecorderDelegate {
-  func audioRecorderDidFinishRecording(_ recorder: AVAudioRecorder, successfully flag: Bool) {
+  nonisolated func audioRecorderDidFinishRecording(_ recorder: AVAudioRecorder, successfully flag: Bool) {
     if !flag {
       print("Recording failed")
     }
-    isRecording = false
+    Task { @MainActor in
+      isRecording = false
+    }
   }
 }
 
 extension AudioRecorder: AVAudioPlayerDelegate {
-  func audioPlayerDidFinishPlaying(_ player: AVAudioPlayer, successfully flag: Bool) {
+  nonisolated func audioPlayerDidFinishPlaying(_ player: AVAudioPlayer, successfully flag: Bool) {
     if !flag {
       print("Playback failed")
     }
-    isPlaying = false
+    Task { @MainActor in
+      isPlaying = false
+    }
   }
 }

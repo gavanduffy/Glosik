@@ -34,7 +34,6 @@ enum SpeechGeneratorError: LocalizedError {
   }
 }
 
-@MainActor
 final class SpeechGeneratorViewModel: ObservableObject {
   /// The F5TTS model instance used for speech generation.
   private var f5tts: F5TTS?
