@@ -7,10 +7,13 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		0AAA876A2CFD5CF800BBF22C /* GlosikUI in Frameworks */ = {isa = PBXBuildFile; productRef = 0AAA87692CFD5CF800BBF22C /* GlosikUI */; };
 		0AF29A0E2CF904B900512E8C /* F5TTS in Frameworks */ = {isa = PBXBuildFile; productRef = 0AF29A0D2CF904B900512E8C /* F5TTS */; };
+		0AF29A112CF904C000512E8C /* (null) in Frameworks */ = {isa = PBXBuildFile; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		0AAA87672CFD5CA200BBF22C /* GlosikUI */ = {isa = PBXFileReference; lastKnownFileType = wrapper; path = GlosikUI; sourceTree = "<group>"; };
 		0AF299E62CF902D800512E8C /* Glosik.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Glosik.app; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
@@ -27,18 +30,29 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				0AAA876A2CFD5CF800BBF22C /* GlosikUI in Frameworks */,
 				0AF29A0E2CF904B900512E8C /* F5TTS in Frameworks */,
+				0AF29A112CF904C000512E8C /* (null) in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		0AAA87682CFD5CF800BBF22C /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			name = Frameworks;
+			sourceTree = "<group>";
+		};
 		0AF299DD2CF902D800512E8C = {
 			isa = PBXGroup;
 			children = (
 				0AF299E82CF902D800512E8C /* Glosik */,
 				0AF299E72CF902D800512E8C /* Products */,
+				0AF29A0F2CF904C000512E8C /* Packages */,
+				0AAA87682CFD5CF800BBF22C /* Frameworks */,
 			);
 			sourceTree = "<group>";
 		};
@@ -48,6 +62,14 @@
 				0AF299E62CF902D800512E8C /* Glosik.app */,
 			);
 			name = Products;
+			sourceTree = "<group>";
+		};
+		0AF29A0F2CF904C000512E8C /* Packages */ = {
+			isa = PBXGroup;
+			children = (
+				0AAA87672CFD5CA200BBF22C /* GlosikUI */,
+			);
+			name = Packages;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -71,6 +93,7 @@
 			name = Glosik;
 			packageProductDependencies = (
 				0AF29A0D2CF904B900512E8C /* F5TTS */,
+				0AAA87692CFD5CF800BBF22C /* GlosikUI */,
 			);
 			productName = Glosik;
 			productReference = 0AF299E62CF902D800512E8C /* Glosik.app */;
@@ -365,6 +388,10 @@
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
+		0AAA87692CFD5CF800BBF22C /* GlosikUI */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = GlosikUI;
+		};
 		0AF29A0D2CF904B900512E8C /* F5TTS */ = {
 			isa = XCSwiftPackageProductDependency;
 			package = 0AF29A0C2CF904B900512E8C /* XCRemoteSwiftPackageReference "f5-tts-swift" */;

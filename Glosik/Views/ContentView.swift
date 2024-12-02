@@ -5,8 +5,9 @@
 //  Created by Rudrank Riyam on 11/29/24.
 //
 
-import MLX
 import SwiftUI
+import GlosikUI
+import MLX
 import os
 
 struct ContentView: View {

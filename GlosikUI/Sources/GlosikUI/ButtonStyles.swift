@@ -1,8 +1,10 @@
 import SwiftUI
 
 /// A prominent button style that provides a filled background with rounded corners.
-struct ProminentButtonStyle: ButtonStyle {
-  func makeBody(configuration: Configuration) -> some View {
+public struct ProminentButtonStyle: ButtonStyle {
+  public init() {}
+
+  public func makeBody(configuration: Configuration) -> some View {
     configuration.label
       .font(.headline)
       .frame(maxWidth: .infinity)
@@ -15,7 +17,7 @@ struct ProminentButtonStyle: ButtonStyle {
 
 extension ButtonStyle where Self == ProminentButtonStyle {
   /// A prominent button style with a filled background.
-  static var prominent: ProminentButtonStyle {
+  public static var prominent: ProminentButtonStyle {
     ProminentButtonStyle()
   }
 }
