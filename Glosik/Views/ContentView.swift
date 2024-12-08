@@ -34,7 +34,19 @@ struct ContentView: View {
     category: "ContentView"
   )
 
+  @State private var isModelDownloaded = false
+
   var body: some View {
+    Group {
+      if !isModelDownloaded {
+        ModelDownloadView(isDownloadComplete: $isModelDownloaded)
+      } else {
+        mainView
+      }
+    }
+  }
+
+  private var mainView: some View {
     VStack(spacing: 24) {
       HStack {
         Label(
@@ -100,7 +112,7 @@ struct ContentView: View {
     }
     .padding()
     .task {
-      await viewModel.initialize()
+      await try? viewModel.initialize()
       referenceViewModel.loadReferenceSamples()
     }
   }

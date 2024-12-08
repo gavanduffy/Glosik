@@ -71,17 +71,21 @@ final class SpeechGeneratorViewModel: ObservableObject {
 
   /// Initializes the F5TTS model.
   @MainActor
-  func initialize() async {
+  func initialize(downloadProgress: ((Progress) -> Void)? = nil) async throws {
     logger.info("Initializing F5TTS model...")
     do {
       let startTime = CFAbsoluteTimeGetCurrent()
-      f5tts = try await F5TTS.fromPretrained(repoId: "lucasnewman/f5-tts-mlx")
+      f5tts = try await F5TTS.fromPretrained(
+        repoId: "alandao/f5-tts-mlx-4bit",
+        downloadProgress: downloadProgress
+      )
       let duration = CFAbsoluteTimeGetCurrent() - startTime
       logger.info("F5TTS model initialized successfully in \(String(format: "%.2f", duration))s")
       isInitialized = true
     } catch {
       logger.error("Failed to initialize F5TTS: \(error.localizedDescription)")
       errorMessage = error.localizedDescription
+      throw error
     }
   }
 
@@ -95,7 +99,7 @@ final class SpeechGeneratorViewModel: ObservableObject {
     logger.info("Starting speech generation for text: \(text.prefix(50))...")
 
     if f5tts == nil {
-      await initialize()
+      await try initialize()
     }
 
     let startTime = CFAbsoluteTimeGetCurrent()
