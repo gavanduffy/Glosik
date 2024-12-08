@@ -1,6 +1,6 @@
 # Głosik
 
-Głosik (pronounced "gwoh-seek") is an example app to showcase the F5-TTS text-to-speech system using the MLX Swift. The name comes from the Polish word "głos" (voice) with the diminutive suffix "-ik".
+Głosik (pronounced "gwoh-seek") is an example app to showcase the F5-TTS text-to-speech system using MLX Swift. The name comes from the Polish word "głos" (voice) with the diminutive suffix "-ik".
 
 Here is the original repository of the implementation: [https://github.com/lucasnewman/f5-tts-swift](https://github.com/lucasnewman/f5-tts-swift)
 
@@ -11,8 +11,10 @@ Watch the demo above to see Głosik in action!
 ## Requirements
 
 - macOS 14.0 or later
+- iOS 16.0 or later
+- visionOS 1.0 or later
 - Xcode 15.0 or later
-- Swift 6.0 or later
+- Swift 5.9 or later
 
 ## Installation
 
@@ -30,17 +32,39 @@ Watch the demo above to see Głosik in action!
    - Select it from the reference picker in the "Generate" tab
 3. Click "Generate Speech" to create the audio
 4. Use the playback controls to listen to the generated speech
+5. Save the generated audio as a WAV file
 
 ## Features
 
+### Text-to-Speech Generation
+
+- High-quality speech synthesis using F5-TTS model
+- Real-time generation progress tracking
+- Generation timing statistics
+- GPU memory usage monitoring
+
 ### Reference Audio Support
 
-You can use your own reference audio samples to influence the generated speech. The app supports:
+- Record new reference samples with accompanying text
+- Manage saved reference samples
+- Select reference samples for speech generation
+- Play back reference samples
+- Support for mono, 24kHz WAV format
 
-- Recording new reference samples with accompanying text
-- Managing saved reference samples
-- Selecting reference samples for speech generation
-- Playing back reference samples
+### Modern UI
+
+- Native SwiftUI interface
+- Split-view navigation
+- Dark mode support
+- Cross-platform support (macOS, iOS, visionOS)
+- Accessibility features
+
+## Project Structure
+
+The project is split into two main parts:
+
+- `Glosik`: Main application
+- `GlosikUI`: Reusable SwiftUI components package
 
 # License
 
