@@ -5,7 +5,6 @@
 //  Created by Rudrank Riyam on 11/29/24.
 //
 
-import GlosikUI
 import SwiftUI
 
 @main
