@@ -37,7 +37,7 @@ public struct SpeechControlsView: View {
         Button(action: onGenerate) {
           Label("Generate Speech", systemImage: "waveform.circle.fill")
         }
-        .buttonStyle(.prominent)
+       // .buttonStyle(.prominent)
         .accentColor(.teal)
         .controlSize(.large)
         .disabled(isGenerating || text.isEmpty)
@@ -49,7 +49,7 @@ public struct SpeechControlsView: View {
               systemImage: isPlaying ? "stop.circle.fill" : "play.circle.fill"
             )
           }
-          .buttonStyle(.prominent)
+         // .buttonStyle(.prominent)
           .accentColor(.indigo)
           .controlSize(.large)
         }

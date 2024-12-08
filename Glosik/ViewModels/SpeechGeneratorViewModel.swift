@@ -34,6 +34,7 @@ enum SpeechGeneratorError: LocalizedError {
   }
 }
 
+@MainActor
 final class SpeechGeneratorViewModel: ObservableObject {
   /// The F5TTS model instance used for speech generation.
   private var f5tts: F5TTS?
@@ -69,6 +70,7 @@ final class SpeechGeneratorViewModel: ObservableObject {
   @Published var selectedReference: ReferenceSample?
 
   /// Initializes the F5TTS model.
+  @MainActor
   func initialize() async {
     logger.info("Initializing F5TTS model...")
     do {

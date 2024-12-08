@@ -383,8 +383,8 @@
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/lucasnewman/f5-tts-swift.git";
 			requirement = {
-				kind = upToNextMajorVersion;
-				minimumVersion = 0.0.4;
+				branch = main;
+				kind = branch;
 			};
 		};
 /* End XCRemoteSwiftPackageReference section */
