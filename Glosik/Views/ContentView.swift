@@ -35,65 +35,62 @@ struct ContentView: View {
   )
 
   var body: some View {
-    NavigationStack {
-      VStack(spacing: 24) {
-        HStack {
-          Label(
-            "Memory: \(deviceStat.gpuUsage.activeMemory.formatted(.byteCount(style: .memory)))",
-            systemImage: "memorychip"
-          )
-          .font(.caption)
-          .foregroundStyle(.secondary)
-          .help(
-            """
-            Active Memory: \(deviceStat.gpuUsage.activeMemory.formatted(.byteCount(style: .memory)))/\(GPU.memoryLimit.formatted(.byteCount(style: .memory)))
-            Cache Memory: \(deviceStat.gpuUsage.cacheMemory.formatted(.byteCount(style: .memory)))/\(GPU.cacheLimit.formatted(.byteCount(style: .memory)))
-            Peak Memory: \(deviceStat.gpuUsage.peakMemory.formatted(.byteCount(style: .memory)))
-            """
-          )
-        }
-        .frame(maxWidth: .infinity, alignment: .trailing)
-        .padding(.horizontal)
-
-        TimingInfoView(
-          generationTime: viewModel.generationTime,
-          saveTime: viewModel.saveTime
+    VStack(spacing: 24) {
+      HStack {
+        Label(
+          "Memory: \(deviceStat.gpuUsage.activeMemory.formatted(.byteCount(style: .memory)))",
+          systemImage: "memorychip"
         )
+        .font(.caption)
+        .foregroundStyle(.secondary)
+        .help(
+          """
+          Active Memory: \(deviceStat.gpuUsage.activeMemory.formatted(.byteCount(style: .memory)))/\(GPU.memoryLimit.formatted(.byteCount(style: .memory)))
+          Cache Memory: \(deviceStat.gpuUsage.cacheMemory.formatted(.byteCount(style: .memory)))/\(GPU.cacheLimit.formatted(.byteCount(style: .memory)))
+          Peak Memory: \(deviceStat.gpuUsage.peakMemory.formatted(.byteCount(style: .memory)))
+          """
+        )
+      }
+      .frame(maxWidth: .infinity, alignment: .trailing)
+      .padding(.horizontal)
 
-        TextInputView(text: $text)
+      TimingInfoView(
+        generationTime: viewModel.generationTime,
+        saveTime: viewModel.saveTime
+      )
 
-        if isGenerating {
-          GenerationProgressView(progress: viewModel.generationProgress)
-        }
+      TextInputView(text: $text)
 
-        SpeechControlsView(
-          errorMessage: errorMessage,
-          isGenerating: isGenerating,
-          isPlaying: viewModel.isPlaying,
-          text: text,
-          onGenerate: {
-            Task { await generateSpeech() }
-          },
-          onPlayPause: {
-            if viewModel.isPlaying {
-              viewModel.stopPlayback()
-            } else {
-              let documentsDirectory = FileManager.default.urls(
-                for: .documentDirectory, in: .userDomainMask)[0]
-              let outputURL = documentsDirectory.appendingPathComponent("output.wav")
-              viewModel.playAudio(from: outputURL)
-            }
+      if isGenerating {
+        GenerationProgressView(progress: viewModel.generationProgress)
+      }
+
+      SpeechControlsView(
+        errorMessage: errorMessage,
+        isGenerating: isGenerating,
+        isPlaying: viewModel.isPlaying,
+        text: text,
+        onGenerate: {
+          Task { await generateSpeech() }
+        },
+        onPlayPause: {
+          if viewModel.isPlaying {
+            viewModel.stopPlayback()
+          } else {
+            let documentsDirectory = FileManager.default.urls(
+              for: .documentDirectory, in: .userDomainMask)[0]
+            let outputURL = documentsDirectory.appendingPathComponent("output.wav")
+            viewModel.playAudio(from: outputURL)
           }
-        )
+        }
+      )
 
-        referenceSampleSection
-      }
-      .padding()
-      .navigationTitle("Glosik")
-      .task {
-        await viewModel.initialize()
-        referenceViewModel.loadReferenceSamples()
-      }
+      referenceSampleSection
+    }
+    .padding()
+    .task {
+      await viewModel.initialize()
+      referenceViewModel.loadReferenceSamples()
     }
   }
 
