@@ -82,6 +82,17 @@ struct ContentView: View {
             let outputURL = documentsDirectory.appendingPathComponent("output.wav")
             viewModel.playAudio(from: outputURL)
           }
+        },
+        onDownload: { url in
+          do {
+            let documentsDirectory = FileManager.default.urls(
+              for: .documentDirectory, in: .userDomainMask)[0]
+            let sourceURL = documentsDirectory.appendingPathComponent("output.wav")
+            try FileManager.default.copyItem(at: sourceURL, to: url)
+          } catch {
+            logger.error("Failed to save audio file: \(error.localizedDescription)")
+            errorMessage = "Failed to save audio file: \(error.localizedDescription)"
+          }
         }
       )
 
@@ -95,34 +106,89 @@ struct ContentView: View {
   }
 
   private var referenceSampleSection: some View {
-    VStack(alignment: .leading, spacing: 8) {
-      Text("Reference Sample")
-        .font(.headline)
-
-      if let reference = referenceViewModel.selectedReference {
-        VStack(alignment: .leading, spacing: 4) {
-          Text(reference.audio.lastPathComponent)
-            .font(.subheadline)
-          Text(reference.text)
-            .font(.caption)
-            .foregroundStyle(.secondary)
-
-          Button("Clear Reference") {
-            referenceViewModel.selectedReference = nil
-            viewModel.selectedReference = nil
+    DisclosureGroup {
+      VStack(alignment: .leading, spacing: 16) {
+        if let reference = referenceViewModel.selectedReference {
+          VStack(alignment: .leading, spacing: 12) {
+            HStack(alignment: .center, spacing: 8) {
+              Image(systemName: "waveform")
+                .foregroundStyle(.teal)
+              
+              Text(reference.audio.lastPathComponent)
+                .font(.system(.body, design: .monospaced))
+                .lineLimit(1)
+                .truncationMode(.middle)
+            }
+            
+            VStack(alignment: .leading, spacing: 4) {
+              Text("Reference Text:")
+                .font(.subheadline)
+                .foregroundStyle(.secondary)
+              
+              Text(reference.text)
+                .font(.callout)
+                .foregroundStyle(.primary)
+                .lineLimit(3)
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .padding(12)
+                .background(Color(.textBackgroundColor))
+                .clipShape(RoundedRectangle(cornerRadius: 8))
+            }
+            
+            Button(role: .destructive, action: {
+              referenceViewModel.selectedReference = nil
+              viewModel.selectedReference = nil
+            }) {
+              Label("Remove Reference", systemImage: "xmark.circle.fill")
+            }
+            .buttonStyle(.borderless)
+            .controlSize(.small)
+            .help("Remove the current reference sample")
           }
-          .buttonStyle(.borderless)
-          .foregroundStyle(.red)
+          .padding(12)
+          .background(Color(.windowBackgroundColor))
+          .clipShape(RoundedRectangle(cornerRadius: 12))
+          .overlay(
+            RoundedRectangle(cornerRadius: 12)
+              .strokeBorder(Color.secondary.opacity(0.2), lineWidth: 1)
+          )
+        } else {
+          VStack(alignment: .center, spacing: 12) {
+            Image(systemName: "waveform.badge.plus")
+              .font(.system(size: 32))
+              .foregroundStyle(.teal)
+              .symbolEffect(.bounce, value: showReferencePicker)
+            
+            Text("No Reference Sample Selected")
+              .font(.headline)
+            
+            Text("Select a reference sample to guide the voice style.")
+              .font(.subheadline)
+              .foregroundStyle(.secondary)
+              .multilineTextAlignment(.center)
+            
+            Button(action: { showReferencePicker = true }) {
+              Text("Choose Reference Sample")
+            }
+            .buttonStyle(.borderedProminent)
+            .tint(.teal)
+            .controlSize(.regular)
+            .keyboardShortcut("r", modifiers: [.command])
+          }
+          .frame(maxWidth: .infinity)
+          .padding(16)
+          .background(Color(.windowBackgroundColor))
+          .clipShape(RoundedRectangle(cornerRadius: 12))
+          .overlay(
+            RoundedRectangle(cornerRadius: 12)
+              .strokeBorder(Color.secondary.opacity(0.2), lineWidth: 1)
+          )
         }
-        .padding()
-        .background(Color.secondary.opacity(0.1))
-        .clipShape(RoundedRectangle(cornerRadius: 8))
-      } else {
-        Button("Select Reference Sample") {
-          showReferencePicker = true
-        }
-        .buttonStyle(.bordered)
       }
+      .frame(maxHeight: 200)
+    } label: {
+      Label("Reference Sample", systemImage: "waveform.circle")
+        .font(.headline)
     }
     .task {
       referenceViewModel.loadReferenceSamples()
@@ -135,6 +201,7 @@ struct ContentView: View {
           showReferencePicker = false
         }
       )
+      .frame(minWidth: 400, minHeight: 300)
     }
     .onChange(of: referenceViewModel.selectedReference) { oldValue, newValue in
       viewModel.selectedReference = newValue

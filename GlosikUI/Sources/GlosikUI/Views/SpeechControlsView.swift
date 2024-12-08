@@ -89,7 +89,7 @@ public struct SpeechControlsView: View {
             .padding(.vertical, 12)
           }
           .buttonStyle(.borderedProminent)
-          .tint(.blue)
+          .tint(.cyan)
           .controlSize(.large)
           .help("Save generated audio to a file")
           .disabled(text.isEmpty)
