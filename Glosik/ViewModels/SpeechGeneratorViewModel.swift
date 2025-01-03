@@ -76,7 +76,7 @@ final class SpeechGeneratorViewModel: ObservableObject {
     do {
       let startTime = CFAbsoluteTimeGetCurrent()
       f5tts = try await F5TTS.fromPretrained(
-        repoId: "alandao/f5-tts-mlx-4bit",
+        repoId: "lucasnewman/f5-tts-mlx",
         downloadProgress: downloadProgress
       )
       let duration = CFAbsoluteTimeGetCurrent() - startTime
