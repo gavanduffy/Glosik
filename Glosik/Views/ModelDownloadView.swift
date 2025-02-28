@@ -6,10 +6,10 @@ struct ModelDownloadView: View {
     @State private var downloadProgress: Double = 0
     @State private var errorMessage: String?
     @State private var showError = false
-    
+
     var body: some View {
         VStack(spacing: 20) {
-            if #available(iOS 18.0, macOS 15.0, *) {
+            if #available(iOS 18.0, macOS 15.0, *, visionOS 2.0, *) {
                 Image(systemName: "waveform.circle.fill")
                     .font(.system(size: 60))
                     .foregroundStyle(.teal)
@@ -19,10 +19,10 @@ struct ModelDownloadView: View {
                     .font(.system(size: 60))
                     .foregroundStyle(.teal)
             }
-            
+
             Text("Downloading F5-TTS Model...")
                 .font(.headline)
-            
+
             ProgressView(value: downloadProgress) {
                 Text("\(Int(downloadProgress * 100))%")
                     .font(.caption)
@@ -30,18 +30,18 @@ struct ModelDownloadView: View {
             }
             .progressViewStyle(.linear)
             .frame(width: 200)
-            
+
             if showError {
                 VStack(spacing: 8) {
                     Text("Failed to initialize model")
                         .foregroundStyle(.red)
                         .font(.headline)
-                    
+
                     Text(errorMessage ?? "Unknown error")
                         .font(.caption)
                         .foregroundStyle(.secondary)
                         .multilineTextAlignment(.center)
-                    
+
                     Button("Retry") {
                         showError = false
                         downloadProgress = 0
@@ -60,12 +60,14 @@ struct ModelDownloadView: View {
             await initializeModel()
         }
     }
-    
+
     private func initializeModel() async {
         do {
             try await viewModel.initialize(downloadProgress: { progress in
                 Task { @MainActor in
-                    downloadProgress = Double(progress.completedUnitCount) / Double(progress.totalUnitCount)
+                    downloadProgress =
+                        Double(progress.completedUnitCount)
+                        / Double(progress.totalUnitCount)
                 }
             })
             isDownloadComplete = true
@@ -77,4 +79,4 @@ struct ModelDownloadView: View {
             }
         }
     }
-} 
+}

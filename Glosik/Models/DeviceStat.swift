@@ -15,33 +15,34 @@ import Metal
 /// information about active memory, cache memory, and peak memory usage.
 @Observable
 final class DeviceStat: @unchecked Sendable {
-  /// The current GPU usage statistics
-  @MainActor
-  var gpuUsage = GPU.snapshot()
+    /// The current GPU usage statistics
+    @MainActor
+    var gpuUsage = GPU.snapshot()
 
-  /// The initial GPU snapshot taken at initialization
-  private let initialGPUSnapshot = GPU.snapshot()
+    /// The initial GPU snapshot taken at initialization
+    private let initialGPUSnapshot = GPU.snapshot()
 
-  /// Timer for periodic updates of GPU statistics
-  private var timer: Timer?
+    /// Timer for periodic updates of GPU statistics
+    private var timer: Timer?
 
-  /// Initializes the DeviceStat monitor and starts periodic updates
-  init() {
-    timer = Timer.scheduledTimer(withTimeInterval: 2.0, repeats: true) { [weak self] _ in
-      self?.updateGPUUsages()
+    /// Initializes the DeviceStat monitor and starts periodic updates
+    init() {
+        timer = Timer.scheduledTimer(withTimeInterval: 2.0, repeats: true) {
+            [weak self] _ in
+            self?.updateGPUUsages()
+        }
     }
-  }
 
-  /// Cleans up resources when the instance is deallocated
-  deinit {
-    timer?.invalidate()
-  }
-
-  /// Updates the GPU usage statistics by comparing with the initial snapshot
-  private func updateGPUUsages() {
-    let gpuSnapshotDelta = initialGPUSnapshot.delta(GPU.snapshot())
-    DispatchQueue.main.async { [weak self] in
-      self?.gpuUsage = gpuSnapshotDelta
+    /// Cleans up resources when the instance is deallocated
+    deinit {
+        timer?.invalidate()
     }
-  }
+
+    /// Updates the GPU usage statistics by comparing with the initial snapshot
+    private func updateGPUUsages() {
+        let gpuSnapshotDelta = initialGPUSnapshot.delta(GPU.snapshot())
+        DispatchQueue.main.async { [weak self] in
+            self?.gpuUsage = gpuSnapshotDelta
+        }
+    }
 }
