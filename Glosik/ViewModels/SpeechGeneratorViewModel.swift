@@ -6,8 +6,10 @@
 //
 
 import AVFoundation
-import F5TTS
-import MLX
+// Add @preconcurrency to suppress Sendable-related warnings from F5TTS module
+@preconcurrency import F5TTS
+// Add @preconcurrency to suppress Sendable-related warnings from MLX module
+@preconcurrency import MLX
 /// A view model that manages speech generation and playback functionality.
 ///
 /// This class handles the initialization of the F5TTS model, speech generation,
@@ -71,13 +73,15 @@ final class SpeechGeneratorViewModel: ObservableObject {
 
   /// Initializes the F5TTS model.
   @MainActor
-  func initialize(downloadProgress: ((Progress) -> Void)? = nil) async throws {
+  func initialize(downloadProgress: (@Sendable (Progress) -> Void)? = nil) async throws {
     logger.info("Initializing F5TTS model...")
     do {
       let startTime = CFAbsoluteTimeGetCurrent()
+      // Create a local copy that can be captured safely by the closure
+      let progressHandler = downloadProgress
       f5tts = try await F5TTS.fromPretrained(
         repoId: "lucasnewman/f5-tts-mlx",
-        downloadProgress: downloadProgress
+        downloadProgress: progressHandler
       )
       let duration = CFAbsoluteTimeGetCurrent() - startTime
       logger.info("F5TTS model initialized successfully in \(String(format: "%.2f", duration))s")
@@ -99,7 +103,7 @@ final class SpeechGeneratorViewModel: ObservableObject {
     logger.info("Starting speech generation for text: \(text.prefix(50))...")
 
     if f5tts == nil {
-      await try initialize()
+      try await initialize()
     }
 
     let startTime = CFAbsoluteTimeGetCurrent()
@@ -107,25 +111,37 @@ final class SpeechGeneratorViewModel: ObservableObject {
 
     if let reference = selectedReference {
       logger.info("Using reference audio: \(reference.audio.lastPathComponent)")
+      // Create a @Sendable progress handler that can safely cross actor boundaries
+      let progressHandler: @Sendable (Double) -> Void = { [weak self] progress in
+        Task { @MainActor [weak self] in
+          guard let self = self else { return }
+          self.generationProgress = progress
+          self.logger.debug("Generation progress: \(progress * 100)%")
+        }
+      }
+      
       result =
         try await f5tts?.generate(
           text: text,
           referenceAudioURL: reference.audio,
-          referenceAudioText: reference.text
-        ) { progress in
-          Task { @MainActor in
-            self.generationProgress = progress
-            self.logger.debug("Generation progress: \(progress * 100)%")
-          }
-        } ?? []
+          referenceAudioText: reference.text,
+          progressHandler: progressHandler
+        ) ?? []
     } else {
+      // Create a @Sendable progress handler that can safely cross actor boundaries
+      let progressHandler: @Sendable (Double) -> Void = { [weak self] progress in
+        Task { @MainActor [weak self] in
+          guard let self = self else { return }
+          self.generationProgress = progress
+          self.logger.debug("Generation progress: \(progress * 100)%")
+        }
+      }
+      
       result =
-        try await f5tts?.generate(text: text) { progress in
-          Task { @MainActor in
-            self.generationProgress = progress
-            self.logger.debug("Generation progress: \(progress * 100)%")
-          }
-        } ?? []
+        try await f5tts?.generate(
+          text: text,
+          progressHandler: progressHandler
+        ) ?? []
     }
 
     resetF5TTS()
