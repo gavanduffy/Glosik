@@ -143,7 +143,7 @@ struct ContentView: View {
                 .lineLimit(3)
                 .frame(maxWidth: .infinity, alignment: .leading)
                 .padding(12)
-                .background(Color(.textBackgroundColor))
+                .background(textBackgroundColor)
                 .clipShape(RoundedRectangle(cornerRadius: 8))
             }
             
@@ -158,7 +158,7 @@ struct ContentView: View {
             .help("Remove the current reference sample")
           }
           .padding(12)
-          .background(Color(.windowBackgroundColor))
+          .background(windowBackgroundColor)
           .clipShape(RoundedRectangle(cornerRadius: 12))
           .overlay(
             RoundedRectangle(cornerRadius: 12)
@@ -189,7 +189,7 @@ struct ContentView: View {
           }
           .frame(maxWidth: .infinity)
           .padding(16)
-          .background(Color(.windowBackgroundColor))
+          .background(windowBackgroundColor)
           .clipShape(RoundedRectangle(cornerRadius: 12))
           .overlay(
             RoundedRectangle(cornerRadius: 12)
@@ -235,6 +235,22 @@ struct ContentView: View {
     }
 
     isGenerating = false
+  }
+
+  private var textBackgroundColor: Color {
+    #if os(iOS)
+    return Color(UIColor.systemBackground)
+    #else
+    return Color(NSColor.textBackgroundColor)
+    #endif
+  }
+  
+  private var windowBackgroundColor: Color {
+    #if os(iOS)
+    return Color(UIColor.secondarySystemBackground)
+    #else
+    return Color(NSColor.windowBackgroundColor)
+    #endif
   }
 }
 
