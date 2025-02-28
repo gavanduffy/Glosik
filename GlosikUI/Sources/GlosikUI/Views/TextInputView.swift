@@ -27,7 +27,7 @@ public struct TextInputView: View {
         .padding(12)
         .background(
           RoundedRectangle(cornerRadius: 12)
-            .fill(Color(.textBackgroundColor))
+            .fill(textBackgroundColor)
         )
         .overlay(
           RoundedRectangle(cornerRadius: 12)
@@ -65,6 +65,14 @@ public struct TextInputView: View {
     }
     .accessibilityElement(children: .contain)
     .accessibilityLabel("Text input section")
+  }
+  
+  private var textBackgroundColor: Color {
+    #if os(iOS)
+    return Color(UIColor.systemBackground)
+    #else
+    return Color(NSColor.textBackgroundColor)
+    #endif
   }
 }
 

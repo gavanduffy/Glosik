@@ -112,7 +112,7 @@ struct ContentView: View {
     }
     .padding()
     .task {
-      await try? viewModel.initialize()
+        try? await viewModel.initialize()
       referenceViewModel.loadReferenceSamples()
     }
   }

@@ -9,10 +9,16 @@ struct ModelDownloadView: View {
     
     var body: some View {
         VStack(spacing: 20) {
-            Image(systemName: "waveform.circle.fill")
-                .font(.system(size: 60))
-                .foregroundStyle(.teal)
-                .symbolEffect(.bounce, options: .repeating)
+            if #available(iOS 18.0, macOS 15.0, *) {
+                Image(systemName: "waveform.circle.fill")
+                    .font(.system(size: 60))
+                    .foregroundStyle(.teal)
+                    .symbolEffect(.bounce, options: .repeating)
+            } else {
+                Image(systemName: "waveform.circle.fill")
+                    .font(.system(size: 60))
+                    .foregroundStyle(.teal)
+            }
             
             Text("Downloading F5-TTS Model...")
                 .font(.headline)
